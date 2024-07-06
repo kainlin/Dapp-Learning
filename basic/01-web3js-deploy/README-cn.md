@@ -5,14 +5,15 @@
 - 本样例发送交易到 Infura , 需要创建相应的 Infura Project, 可以参考如下资料进行创建
 https://ithelp.ithome.com.tw/articles/10202794 在成功创建 Infura Project 后，可以获取相应的PROJECT ID
 
-- 本样例中，需要自己来生成私钥。可通过多种方式来生成私钥。常见的方式是通过Metamask。可参考《精通以太坊》或其他文档安装： https://www.bookstack.cn/read/ethereum_book-zh/spilt.4.77adf5064f4455e8.md  安装完成后，连接到 Goerli 测试网络，点击账户详情-导出私钥，获得创建的测试账号的私钥PRIVATE_KEY。
+- 本样例中，需要自己来生成私钥。可通过多种方式来生成私钥。常见的方式是通过Metamask。可参考《精通以太坊》或其他文档安装： https://www.bookstack.cn/read/ethereum_book-zh/spilt.4.77adf5064f4455e8.md  安装完成后，连接到 Sepolia 测试网络，点击账户详情-导出私钥，获得创建的测试账号的私钥PRIVATE_KEY。
 
-- 给 goerli 测试网络中的测试账号充值。上一步开立的账号中，余额为0， 可通过faucets来充值： https://faucets.chain.link/  每次冲入0.1Eth。
+- 给 sepolia 测试网络中的测试账号充值。上一步开立的账号中，余额为0， 可通过faucets来充值： https://faucets.chain.link/  每次冲入0.1Eth。
  
 - 为方便代码测试, 在 .env 中放入私钥和Infura Project ID，格式为 "PRIVATE_KEY=xxxx" "INFURA_ID=yyyyyyyy", index.js代码会自动从中读取, 样例文件可参考 .env.example  
 
 - 同时在 BiliBili 上有上传本样例代码的讲解演示:   
 https://www.bilibili.com/video/BV1Y44y1r7E6/
+
 
 ## 合约功能说明   
 constructor: 构造函数, 用于部署合约时调用, 同时在其中初始化了公共变量 number 的值  
@@ -22,8 +23,9 @@ getNumber:   查询函数, 用于查询公共变量 number 当前的数值
 
 ## 测试流程:
 1)  安装依赖
-```
+```js
 npm install
+// 本教程使用的 node 版本为 v20.11.0
 ```
 
 2) 配置 .env
@@ -77,13 +79,13 @@ const input = {
   },
 };
 
-const tempFile = JSON.parse(solc.compile(JSON.stringify(input)));
+const compiledCode = JSON.parse(solc.compile(JSON.stringify(input)));
 ```
 
 3) 获取二进制对象  
 在上一步编译成功的 solidity 对象里面包含很多的属性/值, 而我们需要的是其中合约对象的二进制, abi 属性值. 如下, 我们通过属性提取方式进行获取. solidity 对象的其他属性可以通过代码调试方式进行调试, 这里不再赘述. 
 ```js
-const contractFile = tempFile.contracts["Incrementer.sol"]["Incrementer"];
+const contractFile = compiledCode.contracts["Incrementer.sol"]["Incrementer"];
 
 // Get bin & abi
 const bytecode = contractFile.evm.bytecode.object;
@@ -92,13 +94,13 @@ const abi = contractFile.abi;
 
 4) 构造 web3 对象   
 通过 web3 对象可以很方便的发送相应的交易到区块链网络, 同时获取区块链的处理结果. 
-构造 web3 对象时, 主要需要传入一个参数, 就是对应的区块链网络, 包括 goerli 等测试网络, 或是 mainnet 主网. 
-这里我们使用 goerli 测试网络. 如果没有 goerli 网络的测试币, 可以切换到其他的测试网络. 
+构造 web3 对象时, 主要需要传入一个参数, 就是对应的区块链网络, 包括 sepolia 等测试网络, 或是 mainnet 主网. 
+这里我们使用 sepolia 测试网络. 如果没有 sepolia 网络的测试币, 可以切换到其他的测试网络. 
 同时需要注意的是, 这里我们通过 infura 向对应的区块链网络发送交易, 而 INFURA_ID 这个变量值也需要配置在 .env 文件中, 具体如何获取 infura_id, 可自行搜索查找相关文档 
 ```js
-// Create web3 with goerli provider，you can change goerli to other testnet
+// Create web3 with sepolia provider，you can change sepolia to other testnet
 const web3 = new Web3(
-  "https://goerli.infura.io/v3/" + process.env.INFURA_ID
+  "https://sepolia.infura.io/v3/" + process.env.INFURA_ID
 );
 ```
 
@@ -125,31 +127,21 @@ const deployContract = new web3.eth.Contract(abi);
 ```js
 // Create Tx
 const deployTx = deployContract.deploy({
-  data: bytecode,
-  arguments: [5],
+ data: '0x' + bytecode,
+  arguments: [0],
 });
 ```  
 
-8) 交易签名 
-如下使用私钥对交易进行签名,
-```js
-// Sign Tx
-const deployTransaction = await web3.eth.accounts.signTransaction(
-  {
-    data: deployTx.encodeABI(),
-    gas: 8000000,
-  },
-  account_from.privateKey
-);
-```
+
 
 9) 部署合约  
 这里使用发送签名后的交易到区块链网络, 同时会去返回的交易回执. 从返回的交易回执中可以得到此次部署的合约的地址 
 ```js
-const deployReceipt = await web3.eth.sendSignedTransaction(
-  deployTransaction.rawTransaction
-);
-console.log(`Contract deployed at address: ${deployReceipt.contractAddress}`);
+const tx = await deployTx.send({
+  from: accounts[0].address,
+  gas,
+  // gasPrice: 10000000000,
+});
 ```
 
 ## 参考文档

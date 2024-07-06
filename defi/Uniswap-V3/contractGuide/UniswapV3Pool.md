@@ -194,7 +194,7 @@ mapping(int24 => Tick.Info) public override ticks;
 - [Tick.info](./Tick.md#Info)
 
 ### tickBitmap
-
+一个bitmap对应256个ticks, 所以这里mapping定义的时候用的是int16, ticks的mapping定义用的是int24, 因为2^16 * 256 = 2^24
 ```solidity
 /// @inheritdoc IUniswapV3PoolState
 mapping(int16 => uint256) public override tickBitmap;
@@ -263,7 +263,7 @@ struct StepComputations {
     // sqrt(price) for the next tick (1/0)
     // 目标价格(根号)
     uint160 sqrtPriceNextX96;
-    // how much is being swapped in in this step
+    // how much is being swapped in this step
     // 当前步交易了多少输入token
     uint256 amountIn;
     // how much is being swapped out

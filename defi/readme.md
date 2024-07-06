@@ -4,7 +4,8 @@ DEFI学习路线图：
 可以根据我们学习小组的学习路线图：
 - 交易： uniV1(task13) -> uniV2 -> uniV3 -> CurveV1 -> CurveV2
 - 借贷： Aave -> Compound -> Liquity -> Euler
-- 衍生品： SNX -> YFI -> Perpetual 
+- 衍生品： SNX -> YFI -> Perpetual -> Opyn
+- LSD/ReStaking Lido  -> Eigenlayer -> Ether.fi -> Ethena.fi
 
 **衍生品参项目**
 DeFi 衍生全景图: https://github.com/0xperp/defi-derivatives
